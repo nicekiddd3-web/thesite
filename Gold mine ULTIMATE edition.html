@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gold Miner: Ultimate Edition</title>
+    <style>
+        :root {
+            --bg-color: #2c3e50;
+            --panel-color: #34495e;
+            --highlight: #f1c40f;
+            --accent: #e74c3c;
+        }
+
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background-color: var(--bg-color);
+            color: #ecf0f1;
+            margin: 0;
+            height: 100vh;
+            overflow: hidden;
+            user-select: none;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* --- NEWS TICKER --- */
+        .news-ticker {
+            width: 100%;
+            background-color: #000;
+            color: #f1c40f;
+            padding: 5px 0;
+            font-family: 'Courier New', monospace;
+            white-space: nowrap;
+            overflow: hidden;
+            box-sizing: border-box;
+            border-bottom: 2px solid #555;
+            height: 30px;
+            position: relative;
+        }
+        
+        .news-content {
+            display: inline-block;
+            padding-left: 100%;
+            animation: ticker 20s linear infinite;
+        }
+
+        @keyframes ticker {
+            0% { transform: translate3d(0, 0, 0); }
+            100% { transform: translate3d(-100%, 0, 0); }
+        }
+
+        /* --- MAIN LAYOUT --- */
+        .container {
+            display: flex;
+            width: 1100px;
+            height: 85vh;
+            margin-top: 2vh;
+            background-color: var(--panel-color);
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* --- LEFT: MINE --- */
+        .mine-section {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            border-right: 2px solid var(--bg-color);
+            padding: 20px;
+            text-align: center;
+            position: relative;
+            z-index: 10;
+        }
+
+        #money-display { font-size: 2.5rem; font-weight: bold; color: #2ecc71; margin: 5px 0; }
+        .sub-stats { color: #bdc3c7; font-size: 0.9rem; margin-bottom: 20px; }
+
+        /* THE ROCK BUTTON */
+        .mine-btn {
+            width: 200px;
+            height: 200px;
+            border: none;
+            cursor: pointer;
+            font-size: 2rem;
+            font-weight: 900;
+            color: #fff;
+            text-shadow: 2px 2px 0 #000;
+            border-radius: 46% 54% 39% 61% / 55% 42% 58% 45%;
+            background-color: #636e72; 
+            background-image: 
+                radial-gradient(circle at 30% 35%, #f1c40f 0%, #f39c12 12%, transparent 13%),
+                radial-gradient(circle at 70% 65%, #f1c40f 0%, #f39c12 15%, transparent 16%),
+                radial-gradient(circle at 40% 40%, rgba(255,255,255,0.1) 0%, rgba(0,0,0,0.3) 100%);
+            box-shadow: inset -10px -10px 20px rgba(0,0,0,0.4), 5px 10px 0px rgba(0,0,0,0.3);
+            transition: transform 0.05s;
+            position: relative;
+            overflow: hidden;
+        }
+        .mine-btn:active { transform: scale(0.96) rotate(2deg); }
+
+        /* Click Particles */
+        .particle {
+            position: absolute;
+            pointer-events: none;
+            color: #f1c40f;
+            font-weight: bold;
+            font-size: 1.2rem;
+            animation: floatUp 1s ease-out forwards;
+        }
+
+        @keyframes floatUp {
+            0% { opacity: 1; transform: translateY(0); }
+            100% { opacity: 0; transform: translateY(-50px); }
+        }
+
+        /* --- MIDDLE: UPGRADES --- */
+        .shop-section {
+            flex: 1.3;
+            padding: 20px;
+            background-color: var(--bg-color);
+            overflow-y: auto;
+            border-right: 2px solid var(--panel-color);
+        }
+
+        .upgrade-item {
+            background-color: var(--panel-color);
+            padding: 12px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border: 1px solid #7f8c8d;
+            transition: 0.2s;
+        }
+        .upgrade-item:hover { transform: translateX(5px); border-color: #f1c40f; }
+
+        .buy-btn {
+            background-color: #27ae60;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .buy-btn:disabled { background-color: #95a5a6; cursor: not-allowed; opacity: 0.6; }
+
+        /* --- RIGHT: PRESTIGE & EXTRAS --- */
+        .prestige-section {
+            flex: 0.8;
+            background-color: #251e30;
+            padding: 20px;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .gem-box {
+            background: rgba(0,0,0,0.2);
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .prestige-btn {
+            background: linear-gradient(45deg, #8e44ad, #9b59b6);
+            color: white;
+            border: none;
+            padding: 15px;
+            width: 100%;
+            cursor: pointer;
+            font-weight: bold;
+            border-radius: 8px;
+            box-shadow: 0 4px 0 #6c3483;
+        }
+        .prestige-btn:active { transform: translateY(4px); box-shadow: none; }
+        .prestige-btn:disabled { background: #555; box-shadow: none; cursor: not-allowed; }
+
+        /* --- GOLDEN NUGGET EVENT --- */
+        #golden-nugget {
+            position: absolute;
+            width: 60px;
+            height: 60px;
+            background: radial-gradient(circle, #ffd700, #e6ac00);
+            border-radius: 50%;
+            border: 2px solid #fff;
+            box-shadow: 0 0 15px #ffd700;
+            cursor: pointer;
+            display: none; /* Hidden by default */
+            z-index: 100;
+            animation: spin 2s linear infinite;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        /* --- FOOTER CONTROLS --- */
+        .controls {
+            position: absolute;
+            bottom: 10px;
+            left: 10px;
+        }
+        .danger-btn {
+            background: transparent;
+            border: 1px solid #c0392b;
+            color: #c0392b;
+            padding: 5px 10px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            opacity: 0.5;
+        }
+        .danger-btn:hover { opacity: 1; background: #c0392b; color: #fff; }
+
+        /* Offline Modal */
+        #offline-modal {
+            position: fixed; top:0; left:0; width:100%; height:100%;
+            background: rgba(0,0,0,0.85);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 200;
+        }
+        .modal-content {
+            background: #2c3e50;
+            padding: 40px;
+            border-radius: 10px;
+            text-align: center;
+            border: 2px solid #f1c40f;
+            width: 400px;
+        }
+        .modal-btn {
+            margin-top: 20px;
+            padding: 10px 20px;
+            background: #f1c40f;
+            border: none;
+            font-weight: bold;
+            color: #2c3e50;
+            cursor: pointer;
+            font-size: 1.2rem;
+        }
+
+    </style>
+</head>
+<body>
+
+    <!-- News Ticker Top Bar -->
+    <div class="news-ticker">
+        <div class="news-content" id="news-content">
+            Welcome to your brand new Gold Mine. Start mining that rock.
+        </div>
+    </div>
+
+    <!-- The Floating Golden Nugget -->
+    <div id="golden-nugget" onclick="clickGoldenNugget()"></div>
+
+    <!-- Offline Earnings Modal -->
+    <div id="offline-modal">
+        <div class="modal-content">
+            <h2 style="color:#f1c40f">Welcome Back!</h2>
+            <p>Your miners were working while you were away.</p>
+            <h3 id="offline-earnings">+$0</h3>
+            <button class="modal-btn" onclick="closeModal()">Collect</button>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- 1. MINE SECTION -->
+        <div class="mine-section">
+            <div style="margin-bottom:20px;">
+                <h1>Gold Miner</h1>
+                <div id="money-display">$0</div>
+                <div class="sub-stats">
+                    <span id="per-second-display">0/sec</span> • 
+                    <span id="click-power-display">1/click</span>
+                </div>
+            </div>
+
+            <!-- The Rock -->
+            <button class="mine-btn" id="rock-btn" onclick="mine(event)">
+                MINE!
+            </button>
+
+            <div class="controls">
+                <button class="danger-btn" onclick="hardReset()">⚠ RESET DATA</button>
+            </div>
+        </div>
+
+        <!-- 2. SHOP SECTION -->
+        <div class="shop-section">
+            <h2 style="border-bottom:1px solid #7f8c8d; padding-bottom:10px; margin-top:0;">Upgrade Shop</h2>
+            <div id="shop-container"></div>
+        </div>
+
+        <!-- 3. PRESTIGE SECTION -->
+        <div class="prestige-section">
+            <h2 style="color:#d2b4de; margin-top:0;">Prestige</h2>
+            <div class="gem-box">
+                <div style="font-size:2.5rem; color:#9b59b6" id="gem-display">💎 0</div>
+                <div style="color:#bdc3c7" id="bonus-display">Bonus: +0%</div>
+            </div>
+            
+            <p style="font-size:0.9rem; color:#bdc3c7; flex-grow:1;">
+                Reset your progress to earn Gems. <br>
+                1 Gem = +10% to all income forever.<br><br>
+                Requires <strong>$1,000,000</strong>
+            </p>
+
+            <button id="prestige-btn" class="prestige-btn" onclick="doPrestige()">
+                ASCEND
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // --- GAME CONFIGURATION ---
+        const defaultUpgrades = [
+            { id: 1, name: "Rusty Pickaxe",  type: "click", cost: 15, baseCost: 15, increase: 1, count: 0 },
+            { id: 2, name: "Hire newbie miner",    type: "auto",  cost: 50, baseCost: 50, increase: 1, count: 0 },
+            { id: 3, name: "Hire miner",    type: "auto",  cost: 70, baseCost: 70, increase: 5, count: 0 },
+            { id: 4, name: "Drill",    type: "auto",  cost: 250, baseCost: 250, increase: 10, count: 0 },
+            { id: 8, name: "Big Drill",    type: "auto",  cost: 300, baseCost: 300, increase: 15, count: 0 },
+            { id: 5, name: "Bulldozer",      type: "auto",  cost: 400, baseCost: 400, increase: 20, count: 0 },
+            { id: 6, name: "Dynamite Crew",  type: "auto",  cost: 550, baseCost: 550, increase: 50, count: 0 },
+            { id: 7, name: "Laser Mining",   type: "auto",  cost: 900, baseCost: 900, increase: 150, count: 0 },
+            { id: 8, name: "advanced miner",     type: "auto",  cost: 1000, baseCost: 1000, increase: 500, count: 0 },
+            { id: 9, name: "Diamond Drill",    type: "auto",  cost: 10000, baseCost: 10000, increase: 1000, count: 0 },
+        ];
+
+        let gameData = {
+            money: 0,
+            gems: 0,
+            prestigeMult: 1,
+            startTime: Date.now(),
+            lastSaveTime: Date.now(),
+            upgrades: JSON.parse(JSON.stringify(defaultUpgrades))
+        };
+
+        let gameLoopId; 
+        let autoSaveId;
+        let eventLoopId;
+
+        // --- CORE FUNCTIONS ---
+
+        function mine(event) {
+            const amount = getClickStrength();
+            gameData.money += amount;
+            createParticle(amount, event); // Visual effect
+            updateUI();
+        }
+
+        // Creates a little floating number where you clicked
+        function createParticle(amount, event) {
+            if(!event) return;
+            const btn = document.getElementById("rock-btn");
+            const rect = btn.getBoundingClientRect();
+            
+            // Random position near the click
+            const x = event.clientX - 20 + (Math.random() * 40 - 20);
+            const y = event.clientY - 20;
+
+            const el = document.createElement("div");
+            el.className = "particle";
+            el.innerText = "+$" + formatNumber(amount);
+            el.style.left = x + "px";
+            el.style.top = y + "px";
+            document.body.appendChild(el);
+
+            // Remove after animation
+            setTimeout(() => { el.remove(); }, 1000);
+        }
+
+        function getAutoIncome() {
+            let rawIncome = 0;
+            gameData.upgrades.forEach(u => {
+                if (u.type === 'auto') rawIncome += (u.increase * u.count);
+            });
+            return rawIncome * gameData.prestigeMult;
+        }
+
+        function getClickStrength() {
+            let rawClick = 1;
+            gameData.upgrades.forEach(u => {
+                if (u.type === 'click') rawClick += (u.increase * u.count);
+            });
+            return rawClick * gameData.prestigeMult;
+        }
+
+        function buyUpgrade(id) {
+            const upgrade = gameData.upgrades.find(u => u.id === id);
+            if (gameData.money >= upgrade.cost) {
+                gameData.money -= upgrade.cost;
+                upgrade.count++;
+                upgrade.cost = Math.ceil(upgrade.baseCost * Math.pow(1.15, upgrade.count));
+                updateUI();
+                renderShop();
+                // Update news ticker
+                updateNews(`Player just bought ${upgrade.name}! Production is booming!`);
+            }
+        }
+
+        // --- OFFLINE PROGRESS SYSTEM ---
+        function checkOfflineProgress() {
+            const now = Date.now();
+            const lastSave = gameData.lastSaveTime || now;
+            const diffInSeconds = (now - lastSave) / 1000;
+
+            // Only run if away for more than 10 seconds and have income
+            const incomePerSec = getAutoIncome();
+            if (diffInSeconds > 10 && incomePerSec > 0) {
+                const earned = Math.floor(diffInSeconds * incomePerSec);
+                if (earned > 0) {
+                    gameData.money += earned;
+                    document.getElementById("offline-earnings").innerText = "+$" + formatNumber(earned);
+                    document.getElementById("offline-modal").style.display = "flex";
+                }
+            }
+        }
+
+        function closeModal() {
+            document.getElementById("offline-modal").style.display = "none";
+        }
+
+        // --- RANDOM EVENT SYSTEM ---
+        function startEventLoop() {
+            // Check every 30 seconds for a chance to spawn
+            eventLoopId = setInterval(() => {
+                // 30% chance every 30 seconds
+                if (Math.random() < 0.3) {
+                    spawnGoldenNugget();
+                }
+            }, 30000);
+        }
+
+        function spawnGoldenNugget() {
+            const nugget = document.getElementById("golden-nugget");
+            const container = document.querySelector('.container');
+            const rect = container.getBoundingClientRect();
+
+            // Random position inside the container
+            const top = Math.random() * (rect.height - 100);
+            const left = Math.random() * (rect.width - 100);
+
+            nugget.style.top = (rect.top + top) + "px";
+            nugget.style.left = (rect.left + left) + "px";
+            nugget.style.display = "block";
+
+            updateNews("A GOLDEN NUGGET HAS APPEARED! FIND IT!");
+
+            // Disappear after 5 seconds if not clicked
+            setTimeout(() => {
+                nugget.style.display = "none";
+            }, 5000);
+        }
+
+        function clickGoldenNugget() {
+            const nugget = document.getElementById("golden-nugget");
+            nugget.style.display = "none";
+            
+            // Reward: 50x current production or huge flat amount
+            const reward = Math.max(1000, getAutoIncome() * 50);
+            gameData.money += reward;
+            
+            alert(`LUCKY! You found a Golden Nugget worth $${formatNumber(reward)}!`);
+            updateUI();
+        }
+
+        // --- PRESTIGE SYSTEM ---
+        function doPrestige() {
+            if (gameData.money < 1000000) return;
+            if(confirm("Are you sure? Reset money & upgrades for GEMS?")) {
+                const gemsEarned = Math.floor(gameData.money / 1000000);
+                gameData.gems += gemsEarned;
+                gameData.prestigeMult = 1 + (gameData.gems * 0.1);
+                
+                // Reset
+                gameData.money = 0;
+                gameData.upgrades = JSON.parse(JSON.stringify(defaultUpgrades));
+                
+                updateNews(`ASCENSION! Player reset for ${gemsEarned} Gems!`);
+                
+                saveGame();
+                location.reload();
+            }
+        }
+
+        // --- GAME LOOP & SAVING ---
+        function startGameLoop() {
+            gameLoopId = setInterval(() => {
+                const income = getAutoIncome();
+                if (income > 0) {
+                    gameData.money += income;
+                    updateUI();
+                }
+            }, 1000);
+
+            // Auto-save every 5 seconds
+            autoSaveId = setInterval(saveGame, 5000);
+        }
+
+        function saveGame() {
+            gameData.lastSaveTime = Date.now(); // Record time
+            localStorage.setItem('goldMinerUltimate', JSON.stringify(gameData));
+        }
+
+        function loadGame() {
+            const saveString = localStorage.getItem('goldMinerUltimate');
+            if (saveString) {
+                const savedData = JSON.parse(saveString);
+                gameData.money = savedData.money || 0;
+                gameData.gems = savedData.gems || 0;
+                gameData.prestigeMult = savedData.prestigeMult || 1;
+                gameData.lastSaveTime = savedData.lastSaveTime || Date.now();
+
+                // Merge upgrades safely
+                gameData.upgrades.forEach(codeItem => {
+                    const savedItem = savedData.upgrades.find(s => s.id === codeItem.id);
+                    if (savedItem) {
+                        codeItem.count = savedItem.count;
+                        codeItem.cost = savedItem.cost;
+                    }
+                });
+            }
+        }
+
+        function hardReset() {
+            if(confirm("HARD RESET: Delete everything?")) {
+                clearInterval(gameLoopId);
+                clearInterval(autoSaveId);
+                localStorage.removeItem('goldMinerUltimate');
+                location.reload();
+            }
+        }
+
+        // --- UI UPDATES ---
+        function updateUI() {
+            document.getElementById("money-display").innerText = "$" + formatNumber(gameData.money);
+            document.getElementById("per-second-display").innerText = formatNumber(getAutoIncome()) + "/sec";
+            document.getElementById("click-power-display").innerText = formatNumber(getClickStrength()) + "/click";
+            
+            document.getElementById("gem-display").innerText = "💎 " + formatNumber(gameData.gems);
+            document.getElementById("bonus-display").innerText = "Bonus: +" + Math.round((gameData.prestigeMult - 1) * 100) + "%";
+            
+            const prestigeBtn = document.getElementById("prestige-btn");
+            if(gameData.money >= 1000000) {
+                prestigeBtn.disabled = false;
+                prestigeBtn.innerText = "ASCEND (+" + Math.floor(gameData.money / 1000000) + " GEMS)";
+            } else {
+                prestigeBtn.disabled = true;
+                prestigeBtn.innerText = "Need $1M to Ascend";
+            }
+
+            gameData.upgrades.forEach(u => {
+                const btn = document.getElementById(`btn-${u.id}`);
+                if (btn) btn.disabled = gameData.money < u.cost;
+            });
+        }
+
+        function renderShop() {
+            const container = document.getElementById("shop-container");
+            container.innerHTML = "";
+            gameData.upgrades.forEach(u => {
+                const div = document.createElement("div");
+                div.className = "upgrade-item";
+                div.innerHTML = `
+                    <div>
+                        <div style="font-weight:bold; color:#f39c12">${u.name}</div>
+                        <div style="font-size:0.8rem; color:#bdc3c7">
+                            Effect: +${u.increase} ${u.type === 'click' ? 'Click' : '/sec'}
+                        </div>
+                        <div style="font-size:0.8rem; color:#7f8c8d">Owned: ${u.count}</div>
+                    </div>
+                    <button id="btn-${u.id}" class="buy-btn" onclick="buyUpgrade(${u.id})">
+                        $${formatNumber(u.cost)}
+                    </button>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        function updateNews(text) {
+            const ticker = document.getElementById("news-content");
+            // Simple hack to update ticker text (better implementation would queue messages)
+            ticker.innerText = text + " ... " + ticker.innerText.substring(0, 100);
+        }
+
+        function formatNumber(num) {
+            if (num >= 1000000000) return (num / 1000000000).toFixed(2) + "B";
+            if (num >= 1000000) return (num / 1000000).toFixed(2) + "M";
+            if (num >= 1000) return (num / 1000).toFixed(1) + "k";
+            return Math.floor(num).toLocaleString();
+        }
+
+        // --- INITIALIZATION ---
+        loadGame();
+        renderShop();
+        updateUI();
+        
+        checkOfflineProgress(); // Check for earnings immediately
+        startGameLoop(); // Start income loop
+        startEventLoop(); // Start golden nugget loop
+
+    </script>
+</body>
+</html>
